@@ -1,0 +1,105 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fa;
+    margin: 0;
+    padding: 0;
+    color: #333;    
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    background-image: url(Image/logo.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: bottom;
+    position: relative; /* Ajouté pour la gestion du fond */    
+    filter: drop-shadow(15px 5px 4px black);
+}
+
+
+.btn_deco {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    margin: 20px 0;
+    background-color: #0099ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8vw;
+    text-decoration: none;
+}
+
+.btn_deco:hover {
+    background-color: #0080d5;
+}
+
+
+.table-container {
+    overflow-x: auto; /* Active la barre de défilement horizontale si nécessaire */
+    overflow-y: auto; /* Active le défilement vertical si le contenu dépasse */
+    width: 90%;
+    max-height: 60vh; /* Définit une hauteur maximale relative à la fenêtre */
+    margin: 30px auto;
+    border-radius: 5px;
+}
+
+table { 
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+    width: max-content; /* Empêche le tableau d’être compressé */
+    min-width: 100%; /* S'assure qu'il ne sera pas trop petit */
+    margin: 0 auto; /* Centre le tableau sans espace supplémentaire */ 
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;    
+    white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+th {
+    background-color: #0099ff;
+    color: white;
+    font-weight: bold;
+}
+
+td input, td select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: none;
+}
+
+.filtrage{    
+    padding: 10px;
+    margin: 20px 0;
+    background-color: #0099ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8vw;
+}
+
+
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+    font-family: "Roboto", "Helvetica Neue";
+}
+
+

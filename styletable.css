@@ -1,0 +1,191 @@
+
+/* Définir la police générale */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f7fa;
+    margin: 0;
+    padding: 0;
+    color: #333;    
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    display: flex;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    position: relative; /* Nécessaire pour positionner le pseudo-élément */
+    width: 85%;    
+}
+
+.content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(Image/logo.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: bottom;
+    filter: drop-shadow(15px 5px 4px black);
+    pointer-events: none; /* Empêche que ça interfère avec les clics */
+    z-index: -1; /* Met l'image derrière le contenu de .content */
+}
+
+
+.btn_deco {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px;
+    margin: 20px 0;
+    background-color: #0099ff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8vw;
+}
+
+.btn_deco:hover {
+    background-color: #0080d5;
+}
+
+
+/* En-tête */
+h1, h2 {
+    color: #2c3e50;
+    text-align: center;
+    font-family: "Roboto", "Helvetica Neue";
+}
+
+/* Formulaire d'ajout */
+.form-add {
+    margin: 20px auto;
+    text-align: center;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 60%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.form-add p {
+    color: red;
+}
+
+.form-add label {
+    font-size: 0.8vw;
+    color: #333;
+}
+
+.form-add input, .form-add select {
+    padding: 8px;
+    width: 96%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 10px;
+    background: none;
+}
+
+.form-add button {
+    margin-top: 15px;
+    font-size: 0.8vw;
+    background-color: #0099ff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: none;
+}
+
+.form-add button:hover{
+    background-color: #0080d5;
+}
+
+.ligne {
+    display: flex;
+    justify-content: center;
+    width: 90%; /* Largeur totale de la ligne */
+    margin: 5px auto; /* Centrage et espacement vertical */
+}
+
+.gauche, .droite {
+    width: 48%; /* Chaque colonne prend environ la moitié de la ligne */
+    display: flex;
+    flex-direction: column; /* Empile le label et l'input dans chaque colonne */
+}
+
+.gauche{
+    margin-right: 5%;
+}
+
+.table-container {
+    overflow-x: auto; /* Active la barre de défilement horizontale si nécessaire */
+    overflow-y: auto; /* Active le défilement vertical si le contenu dépasse */
+    max-width: 90%;
+    max-height: 60vh; /* Définit une hauteur maximale relative à la fenêtre */
+    margin: 30px auto;
+    border-radius: 5px;
+}
+
+table { 
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  
+    width: max-content; /* Empêche le tableau d’être compressé */
+    min-width: 100%; /* S'assure qu'il ne sera pas trop petit */
+    margin: 0 auto; /* Centre le tableau sans espace supplémentaire */ 
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ddd;    
+    white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+th {
+    background-color: #0099ff;
+    color: white;
+    font-weight: bold;
+}
+
+td input, td select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background: none;
+}
+
+/* Style pour les boutons icône */
+.icon-button {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.icon-button:hover {
+    transform: scale(1.1); /* Agrandit légèrement l'icône au survol */
+}
+
+.icon-button:focus {
+    outline: none;
+}
+
+/* Style des icônes */
+.icon {
+    width: 24px;
+    height: 24px;
+}
+
+
+
