@@ -67,7 +67,7 @@ if ($stmt = $conn->prepare($sql)) {
         echo "<table border='1'>";
         echo "<tr><th>Id_hospitalisation</th><th>Pré admission</th><th>Date de l'hospitalisation</th>
                   <th>Heure de l'hospitalisation</th><th>Nom du patient</th><th>Nom du médecin</th>
-                  <th>Type de chambre</th></tr>";
+                  <th>Type de chambre</th><th>Générer le pdf</th></tr>";
 
         while ($row = $result->fetch_assoc()) {
             echo "<tr>
@@ -78,6 +78,11 @@ if ($stmt = $conn->prepare($sql)) {
                     <td>{$row['nom_patient']}</td>
                     <td>{$row['nom_personnel']}</td>
                     <td>{$row['type_chambre']}</td>
+                    <td class='action-icons'>
+                        <a href='generate_pdf_table.php?id_hospitalisation=" . $row['id_hospitalisation'] . "' target='_blank'>
+                            <img class='icon' src='Image/pdf.png' alt='Générer PDF'>
+                        </a>
+                    </td>
                   </tr>";
         }
         echo "</table>";

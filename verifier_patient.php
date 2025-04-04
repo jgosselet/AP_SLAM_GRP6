@@ -14,7 +14,7 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT 
-            p.nom, p.prenom, p.civilite, p.date_naissance, p.adresse, p.cp AS code_postal, p.ville, p.email, p.tel AS telephone,
+            p.nom, p.nom_epouse, p.prenom, p.civilite, p.date_naissance, p.adresse, p.cp AS code_postal, p.ville, p.email, p.tel AS telephone,
             proche_p.nom AS nom_personne_p, proche_p.prenom AS prenom_personne_p, proche_p.tel AS tel_personne_p, proche_p.adresse AS adresse_personne_p,
             proche_c.nom AS nom_personne_c, proche_c.prenom AS prenom_personne_c, proche_c.tel AS tel_personne_c, proche_c.adresse AS adresse_personne_c,
             cs.numero_secu, cs.organisme, cs.patient_assurance, cs.patient_ald, cs.nom_mutuelle, cs.num_adherent

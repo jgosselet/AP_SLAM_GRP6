@@ -7,6 +7,51 @@ if (!isset($_SESSION['email']) || ($_SESSION['id_role'] != 1)) {
     exit();
 }
 
+// Ajouter, Modifier, ou Supprimer des médecins
+if (isset($_POST['add_personnel'])) {
+    $nom = $_POST['nom'];
+    $prenom = $_POST['prenom'];
+    $email = $_POST['email'];
+    $mot_de_passe = password_hash($_POST['mot_de_passe'], PASSWORD_BCRYPT);
+    $mot_de_passe_clair = $_POST['mot_de_passe'];
+    $id_metier = $_POST['id_metier'];
+    if (!validate_password($_POST['mot_de_passe'])) {
+        $_SESSION['message'] = "<p>Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.</p>";
+        header("Location: personnel_table.php");
+        exit();
+    } else {    
+        $sql = "INSERT INTO personnel (nom, prenom, email, mot_de_passe, mot_de_passe_clair, id_role, id_metier) VALUES ('$nom', '$prenom', '$email', '$mot_de_passe', '$mot_de_passe_clair',  3, '$id_metier')";
+        $conn->query($sql);
+        // Redirection pour éviter le renvoi de données
+        header("Location: personnel_table.php");
+        exit();
+    }    
+}
+
+if (isset($_POST['edit_personnel'])) {
+    $id_personnel = $_POST['id_personnel'];
+    $nom = $_POST['nom'];
+    $prenom = $_POST['prenom'];
+    $email = $_POST['email'];
+    $mot_de_passe = $_POST['mot_de_passe'];
+    $mot_de_passe_clair = $_POST['mot_de_passe_clair'];
+    $id_metier = $_POST['id_metier'];
+
+    $sql = "UPDATE personnel SET nom='$nom', prenom='$prenom', email='$email', mot_de_passe='$mot_de_passe', mot_de_passe_clair='$mot_de_passe_clair', id_metier='$id_metier' WHERE id_personnel=$id_personnel";
+    $conn->query($sql);
+    header("Location: personnel_table.php");
+    exit();
+}
+
+if (isset($_POST['delete_personnel'])) {
+    $id_personnel = $_POST['id_personnel'];
+    $sql = "DELETE FROM personnel WHERE id_personnel=$id_personnel";
+    $conn->query($sql);
+    header("Location: personnel_table.php");
+    exit();
+}
+
+
 $sql_metier = "SELECT id_metier, libelle FROM metier";
 $result_metier = $conn->query($sql_metier);
 
@@ -93,51 +138,7 @@ if ($result_role) {
             </div>           
         </div>
         <button type="submit" name="add_personnel">Ajouter personnel</button>
-        <?php
-        // Ajouter, Modifier, ou Supprimer des médecins
-        if (isset($_POST['add_personnel'])) {
-            $nom = $_POST['nom'];
-            $prenom = $_POST['prenom'];
-            $email = $_POST['email'];
-            $mot_de_passe = password_hash($_POST['mot_de_passe'], PASSWORD_BCRYPT);
-            $mot_de_passe_clair = $_POST['mot_de_passe'];
-            $id_metier = $_POST['id_metier'];
-            if (!validate_password($_POST['mot_de_passe'])) {
-                $_SESSION['message'] = "<p>Le mot de passe doit contenir au moins 12 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.</p>";
-                header("Location: personnel_table.php");
-                exit();
-            } else {    
-                $sql = "INSERT INTO personnel (nom, prenom, email, mot_de_passe, mot_de_passe_clair, id_role, id_metier) VALUES ('$nom', '$prenom', '$email', '$mot_de_passe', '$mot_de_passe_clair',  3, '$id_metier')";
-                $conn->query($sql);
-                // Redirection pour éviter le renvoi de données
-                header("Location: personnel_table.php");
-                exit();
-            }    
-        }
-
-        if (isset($_POST['edit_personnel'])) {
-            $id_personnel = $_POST['id_personnel'];
-            $nom = $_POST['nom'];
-            $prenom = $_POST['prenom'];
-            $email = $_POST['email'];
-            $mot_de_passe = $_POST['mot_de_passe'];
-            $mot_de_passe_clair = $_POST['mot_de_passe_clair'];
-            $id_metier = $_POST['id_metier'];
-
-            $sql = "UPDATE personnel SET nom='$nom', prenom='$prenom', email='$email', mot_de_passe='$mot_de_passe', mot_de_passe_clair='$mot_de_passe_clair', id_metier='$id_metier' WHERE id_personnel=$id_personnel";
-            $conn->query($sql);
-            header("Location: personnel_table.php");
-            exit();
-        }
-
-        if (isset($_POST['delete_personnel'])) {
-            $id_personnel = $_POST['id_personnel'];
-            $sql = "DELETE FROM personnel WHERE id_personnel=$id_personnel";
-            $conn->query($sql);
-            header("Location: personnel_table.php");
-            exit();
-        }
-
+        <?php        
         // Affichage des messages d'erreur, le cas échéant
         if (isset($_SESSION['message'])) {
             echo $_SESSION['message'];
@@ -154,8 +155,7 @@ if ($result_role) {
                     <th>Nom</th>
                     <th>Prénom</th>
                     <th>Email</th>
-                    <th>Mot de passe (haché)</th>
-                    <th>Mot de passe (clair)</th>
+                    <th>Mot de passe</th>
                     <th>Rôle</th>
                     <th>Métier</th>
                     <th>Modifier</th>
@@ -177,7 +177,7 @@ if ($result_role) {
                     echo "<td><input type='text' name='prenom' value='" . $row['prenom'] . "' required></td>";
                     echo "<td><input type='email' name='email' value='" . $row['email'] . "' required></td>";
                     echo "<td><input type='text' name='mot_de_passe' value='" . $row['mot_de_passe'] . "' readonly></td>";
-                    echo "<td><input type='text' name='mot_de_passe_clair' value='" . $row['mot_de_passe_clair'] . "' required></td>";
+                    // echo "<td><input type='text' name='mot_de_passe_clair' value='" . $row['mot_de_passe_clair'] . "' required></td>";
                     echo "<td>";
                     echo "<select name='id_role' required>";
                     foreach ($roles as $role) {

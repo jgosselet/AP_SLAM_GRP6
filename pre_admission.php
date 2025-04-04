@@ -71,8 +71,10 @@ function renderProgressBar($currentStep) {
             $isLineActive = 'active';
         }
 
+        $marginTop = ($stepNumber == 3) ? 'style="margin-top: 3%;"' : '';
+
         // Affichage du cercle et du label pour chaque étape
-        echo '<div class="step ' . $isActive . '">';
+        echo '<div class="step ' . $isActive . '" ' . $marginTop . '>';
         echo '<div class="circle">' . $stepNumber . '</div>';
         echo '<div class="label">' . $label . '</div>';
         echo '</div>';
@@ -80,7 +82,7 @@ function renderProgressBar($currentStep) {
         // Afficher la ligne après chaque cercle (sauf pour la dernière étape)
         if ($stepNumber < 4) { // On évite d'afficher une ligne après la dernière étape
             echo '<div class="line ' . $isLineActive . '"></div>';
-        }
+        }        
     }
 
     echo '</div>';
@@ -99,8 +101,6 @@ function checkIfPersonExists($conn, $nom, $prenom, $tel, $adresse) {
     $stmt_check->fetch();
     return $count > 0; // Retourne true si la personne existe déjà, sinon false
 }
-
-
 
 
 // Vérifier et définir l'étape
@@ -231,7 +231,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_couverture']))
     $verif_result = verifierNumeroSecu($numero_secu, $civilite, $date_naissance);
     
     if ($verif_result !== true) {
-        $_SESSION['message'] = "<p>Erreur : $verif_result</p>";
+        $_SESSION['message'] = "<p>$verif_result</p>";
+        $_SESSION['couverture_sociale_data']['numero_secu'] = $_POST['numero_secu'];
+        $_SESSION['couverture_sociale_data']['organisme'] = $_POST['organisme'];
+        $_SESSION['couverture_sociale_data']['patient_assurance'] = $_POST['patient_assurance'];
+        $_SESSION['couverture_sociale_data']['patient_ald'] = $_POST['patient_ald'];
+        $_SESSION['couverture_sociale_data']['nom_mutuelle'] = $_POST['nom_mutuelle'];
+        $_SESSION['couverture_sociale_data']['num_adherent'] = $_POST['num_adherent'];
         header("Location: " . $_SERVER['PHP_SELF']);
         exit;
     }
@@ -547,11 +553,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_final']) && $_
 }
 
 
-// Requête pour récupérer les médecins (excluant id_metier = 1 et 3)
-
+// Requête pour récupérer les médecins 
 $sql = "SELECT p.id_personnel, p.nom, m.libelle FROM personnel p
     JOIN metier m ON p.id_metier = m.id_metier
-    WHERE m.id_service NOT IN (21, 22, 23)";
+    WHERE p.id_role = 3";
 $result = $conn->query($sql);
 
 if (!$result) {
@@ -563,8 +568,6 @@ $medecins = [];
 while ($row = $result->fetch_assoc()) {
     $medecins[] = $row;
 }
-
-$isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
 ?>
 
 
@@ -591,7 +594,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                 <?php renderProgressBar($_SESSION['step']); ?>
                 <form method="post" action="">
                     <label for="pre_admission">Pré admission pour :</label> 
-                    <select name="pre_admission" id="pre_admission" >
+                    <select name="pre_admission" id="pre_admission" required>
                         <option value="" disabled selected <?php echo empty($_SESSION['hospitalisation_data']['pre_admission']) ? 'selected' : ''; ?>>Choix</option>
                         <option value="Ambulatoire chirurgie" <?php echo ($_SESSION['hospitalisation_data']['pre_admission'] ?? '') === 'Ambulatoire chirurgie' ? 'selected' : ''; ?>>Ambulatoire chirurgie</option>
                         <option value="Hospitalisation" <?php echo ($_SESSION['hospitalisation_data']['pre_admission'] ?? '') === 'Hospitalisation' ? 'selected' : ''; ?>>Hospitalisation (au moins une nuit)</option>
@@ -599,15 +602,15 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                     <div class="ligne">
                         <div class="gauche">
                             <label for="date_hospitalisation">Date d'hospitalisation :</label>
-                            <input type="date" name="date_hospitalisation" id="date_hospitalisation" min="<?= date('Y-m-d'); ?>" max="2027-01-01" value="<?php echo htmlspecialchars($_SESSION['hospitalisation_data']['date_hospitalisation'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="date" name="date_hospitalisation" id="date_hospitalisation" min="<?= date('Y-m-d'); ?>" max="2027-01-01" value="<?php echo htmlspecialchars($_SESSION['hospitalisation_data']['date_hospitalisation'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="heure_hospitalisation">Heure d'hospitalisation :</label> 
-                            <input type="text" name="heure_hospitalisation" id="heure_hospitalisation"  value="<?php echo htmlspecialchars($_SESSION['hospitalisation_data']['heure_hospitalisation'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="time" name="heure_hospitalisation" id="heure_hospitalisation"  value="<?php echo htmlspecialchars($_SESSION['hospitalisation_data']['heure_hospitalisation'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                     </div>
                     <label for="nom_medecin">Nom du médecin :</label>
-                    <select name="nom_medecin" id="nom_medecin">
+                    <select name="nom_medecin" id="nom_medecin" required>
                         <option value="" disabled selected <?php echo empty($_SESSION['hospitalisation_data']['nom_medecin']) ? 'selected' : ''; ?>>Choix</option>
                         <?php foreach ($medecins as $medecin): ?>
                             <option value="<?php echo htmlspecialchars($medecin['id_personnel'], ENT_QUOTES); ?>" 
@@ -617,7 +620,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                         <?php endforeach; ?>
                     </select>
                     <label for="chambre">Chambre :</label> 
-                    <select name="chambre" id="chambre" >
+                    <select name="chambre" id="chambre" required>
                         <option value="" disabled selected <?php echo empty($_SESSION['hospitalisation_data']['chambre']) ? 'selected' : ''; ?>>Choix</option>
                         <option value="1" <?php echo ($_SESSION['hospitalisation_data']['chambre'] ?? '') === '1' ? 'selected' : ''; ?>>Simple</option>
                         <option value="2" <?php echo ($_SESSION['hospitalisation_data']['chambre'] ?? '') === '2' ? 'selected' : ''; ?>>Double</option>
@@ -630,13 +633,13 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                 <?php renderProgressBar($_SESSION['step']); ?>
                 <form method="post" action="" >
                 <label for="numero_secu_verif">Numéro de sécurité sociale pour vérifier et remplir automatiquement:</label>
-                    <input type="text" name="numero_secu_verif" id="numero_secu_verif" minlength="15" maxlength="15"/>
+                    <input type="text" name="numero_secu_verif" id="numero_secu_verif" minlength="15" maxlength="15">
                     <button type="button" id="verifier-patient" class="verif-button" >Vérifier</button>
                     <div id="result-message" style="margin-top:10px; color:red;"></div>
                     <div class="ligne">               
                         <div class="gauche">
                             <label for="nom">Nom :</label>
-                            <input type="text" name="nom" id="nom" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['patient_data']['nom'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="nom" id="nom" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['patient_data']['nom'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="nom_epouse">Nom d'épouse :</label>
@@ -644,11 +647,11 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                         </div>
                     </div>
                     <label for="prenom">Prénom :</label>
-                    <input type="text" name="prenom" id="prenom" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['patient_data']['prenom'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="prenom" id="prenom" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['patient_data']['prenom'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <label for="civilité">Civilité :</label>
-                            <select name="civilite" id="civilite" >
+                            <select name="civilite" id="civilite" required>
                                 <option value="" disabled <?php echo empty($_SESSION['patient_data']['civilite']) ? 'selected' : ''; ?>>Choix</option>
                                 <option value="Homme" <?php echo ($_SESSION['patient_data']['civilite'] ?? '') === 'Homme' ? 'selected' : ''; ?>>Homme</option>
                                 <option value="Femme" <?php echo ($_SESSION['patient_data']['civilite'] ?? '') === 'Femme' ? 'selected' : ''; ?>>Femme</option>
@@ -656,29 +659,29 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                         </div>
                         <div class="droite">
                             <label for="date_naissance">Date de naissance :</label>
-                            <input type="date" name="date_naissance" id="date_naissance" min="1904-01-01" max="<?= date('Y-m-d'); ?>" value="<?php echo htmlspecialchars($_SESSION['patient_data']['date_naissance'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="date" name="date_naissance" id="date_naissance" min="1904-01-01" max="<?= date('Y-m-d'); ?>" value="<?php echo htmlspecialchars($_SESSION['patient_data']['date_naissance'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                     </div>
                     <label for="adresse">Adresse :</label>
-                    <input type="text" name="adresse" id="adresse" value="<?php echo htmlspecialchars($_SESSION['patient_data']['adresse'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="adresse" id="adresse" value="<?php echo htmlspecialchars($_SESSION['patient_data']['adresse'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <label for="code_postal">Code postal :</label>
-                            <input type="text" name="code_postal" id="code_postal" minlength="5" maxlength="5" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['patient_data']['code_postal'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="code_postal" id="code_postal" minlength="5" maxlength="5" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['patient_data']['code_postal'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="ville">Ville :</label>
-                            <input list="villes" name="ville" id="ville" value="<?php echo htmlspecialchars($_SESSION['patient_data']['ville'] ?? '', ENT_QUOTES); ?>" >                       
+                            <input list="villes" name="ville" id="ville" value="<?php echo htmlspecialchars($_SESSION['patient_data']['ville'] ?? '', ENT_QUOTES); ?>" required>                       
                         </div>
                     </div>               
                     <div class="ligne">
                         <div class="gauche">
                             <label for="email">Email :</label>
-                            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_SESSION['patient_data']['email'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="email" name="email" id="email" value="<?php echo htmlspecialchars($_SESSION['patient_data']['email'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="tel">Téléphone :</label>
-                            <input type="tel" name="telephone" id="telephone" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['patient_data']['telephone'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="tel" name="telephone" id="telephone" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['patient_data']['telephone'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                     </div>
                     <div class="ligne">
@@ -700,17 +703,17 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                     <div class="ligne">
                         <div class="gauche">
                             <label for="nom_personne_p">Nom :</label>  
-                            <input type="text" name="nom_personne_p" id="nom_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['nom_personne_p'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="nom_personne_p" id="nom_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['nom_personne_p'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="prenom_personne_p">Prénom :</label>
-                            <input type="text" name="prenom_personne_p" id="prenom_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['prenom_personne_p'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="prenom_personne_p" id="prenom_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['prenom_personne_p'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                     </div>
                     <label for="tel_personne_p">Téléphone :</label> 
-                    <input type="tel" name="tel_personne_p" id="tel_personne_p" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['tel_personne_p'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="tel" name="tel_personne_p" id="tel_personne_p" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['tel_personne_p'] ?? '', ENT_QUOTES); ?>" required>
                     <label for="adresse_personne_p">Adresse :</label> 
-                    <input type="text" name="adresse_personne_p" id="adresse_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['adresse_personne_p'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="adresse_personne_p" id="adresse_personne_p" value="<?php echo htmlspecialchars($_SESSION['personne_p_data']['adresse_personne_p'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <button type="button" name="submit_prec" onclick="goToPreviousStep()" formnovalidate>Précédent</button>
@@ -740,17 +743,17 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                     <div class="ligne">
                         <div class="gauche">
                             <label for="nom_personne_c">Nom :</label> 
-                            <input type="text" name="nom_personne_c" id="nom_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['nom_personne_c'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="nom_personne_c" id="nom_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['nom_personne_c'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                         <div class="droite">
                             <label for="prenom_personne_c">Prénom :</label>
-                            <input type="text" name="prenom_personne_c" id="prenom_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['prenom_personne_c'] ?? '', ENT_QUOTES); ?>" >
+                            <input type="text" name="prenom_personne_c" id="prenom_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['prenom_personne_c'] ?? '', ENT_QUOTES); ?>" required>
                         </div>
                     </div>
                     <label for="tel_personne_c">Téléphone :</label>
-                    <input type="tel" name="tel_personne_c" id="tel_personne_c" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['tel_personne_c'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="tel" name="tel_personne_c" id="tel_personne_c" minlength="10" maxlength="10" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['tel_personne_c'] ?? '', ENT_QUOTES); ?>" required>
                     <label for="adresse_personne_c">Adresse :</label> 
-                    <input type="text" name="adresse_personne_c" id="adresse_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['adresse_personne_c'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="adresse_personne_c" id="adresse_personne_c" value="<?php echo htmlspecialchars($_SESSION['personne_c_data']['adresse_personne_c'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <button type="button" name="submit_prec" onclick="goToPreviousStep()" formnovalidate>Précédent</button>
@@ -768,13 +771,13 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                     <input type="text" name="numero_secu_verif" id="numero_secu_verif" minlength="15" maxlength="15" value="<?php echo htmlspecialchars($_SESSION['numero_secu_verif'] ?? '', ENT_QUOTES); ?>" style="display: none;"/>
                     <button type="button" id="verifier-patient" class="verif-button" >Remplir</button>
                     <label for="numero_secu">Numéro de sécurité sociale :</label>
-                    <input type="text" name="numero_secu" id="numero_secu" minlength="15" maxlength="15" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['numero_secu'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="numero_secu" id="numero_secu" minlength="15" maxlength="15" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['numero_secu'] ?? '', ENT_QUOTES); ?>" required>
                     <label for="organisme">Organisme :</label>
-                    <input type="text" name="organisme" id="organisme" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['organisme'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="organisme" id="organisme" pattern="[A-Za-zÀ-ÖØ-öø-ÿ\s]+" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['organisme'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <label for="patient_assurance">Assurance :</label>
-                            <select name="patient_assurance" id="patient_assurance" >
+                            <select name="patient_assurance" id="patient_assurance" required>
                                 <option value="" disabled selected <?php echo empty($_SESSION['couverture_sociale_data']['patient_assurance']) ? 'selected' : ''; ?>>Choix</option>
                                 <option value="Oui" <?php echo ($_SESSION['couverture_sociale_data']['patient_assurance'] ?? '') === 'Oui' ? 'selected' : ''; ?>>Oui</option>
                                 <option value="Non" <?php echo ($_SESSION['couverture_sociale_data']['patient_assurance'] ?? '') === 'Non' ? 'selected' : ''; ?>>Non</option>
@@ -782,7 +785,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                         </div>
                         <div class="droite">
                             <label for="patient_ald">ALD :</label>
-                            <select name="patient_ald" id="patient_ald" >
+                            <select name="patient_ald" id="patient_ald" required>
                                 <option value="" disabled selected <?php echo empty($_SESSION['couverture_sociale_data']['patient_ald']) ? 'selected' : ''; ?>>Choix</option>
                                 <option value="Oui" <?php echo ($_SESSION['couverture_sociale_data']['patient_ald'] ?? '') === 'Oui' ? 'selected' : ''; ?>>Oui</option>
                                 <option value="Non" <?php echo ($_SESSION['couverture_sociale_data']['patient_ald'] ?? '') === 'Non' ? 'selected' : ''; ?>>Non</option>
@@ -790,9 +793,9 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                         </div>
                     </div>
                     <label for="nom_mutuelle">Nom de la mutuelle :</label>
-                    <input type="text" name="nom_mutuelle" id="nom_mutuelle" pattern="[A-Za-z]+" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['nom_mutuelle'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="nom_mutuelle" id="nom_mutuelle" pattern="[A-Za-zÀ-ÖØ-öø-ÿ\s]+" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['nom_mutuelle'] ?? '', ENT_QUOTES); ?>" required>
                     <label for=num_adherent>Numéro d'adhérent</label>
-                    <input type="text" name="num_adherent" id="num_adherent" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['num_adherent'] ?? '', ENT_QUOTES); ?>" >
+                    <input type="text" name="num_adherent" id="num_adherent" pattern="[0-9]*" value="<?php echo htmlspecialchars($_SESSION['couverture_sociale_data']['num_adherent'] ?? '', ENT_QUOTES); ?>" required>
                     <div class="ligne">
                         <div class="gauche">
                             <button type="button" name="submit_prec" onclick="goToPreviousStep()" formnovalidate>Précédent</button>
@@ -814,7 +817,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                                     <div class="bottom"></div>
                                 </div>
                                 <label for="carte_identite" class="custom-file-upload">
-                                <input type="file" name="carte_identite" id="carte_identite" accept="application/pdf" onchange="displayFileName('carte_identite')" >
+                                <input type="file" name="carte_identite" id="carte_identite" accept="application/pdf" onchange="displayFileName('carte_identite')" required>
                                     Carte d'identité
                                 </label>
                                 <span id="carte_identite_msg" class="file-message"></span>
@@ -827,7 +830,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                                     <div class="bottom"></div>
                                 </div>
                                 <label for="carte_vitale" class="custom-file-upload">
-                                <input type="file" name="carte_vitale" id="carte_vitale" accept="application/pdf" onchange="displayFileName('carte_vitale')">
+                                <input type="file" name="carte_vitale" id="carte_vitale" accept="application/pdf" onchange="displayFileName('carte_vitale')" required>
                                     Carte vitale
                                 </label>
                                 <span id="carte_vitale_msg" class="file-message"></span>
@@ -842,7 +845,7 @@ $isFromPage = (isset($_SESSION['id_role']) && $_SESSION['id_role'] == 1);
                                     <div class="bottom"></div>
                                 </div>
                                 <label for="carte_mutuelle" class="custom-file-upload">
-                                <input type="file" name="carte_mutuelle" id="carte_mutuelle" accept="application/pdf" onchange="displayFileName('carte_mutuelle')">
+                                <input type="file" name="carte_mutuelle" id="carte_mutuelle" accept="application/pdf" onchange="displayFileName('carte_mutuelle')" required>
                                     Carte mutuelle
                                 </label>
                                 <span id="carte_mutuelle_msg" class="file-message"></span>

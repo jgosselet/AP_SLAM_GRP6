@@ -18,11 +18,12 @@
             <a href="hospitalisation_table.php">Hospitalisation</a>
             <a href="patient_table.php">Patient</a>
             <?php if ($_SESSION['id_role'] == 1) { ?>
-                <a href="service_table.php">Service</a>
                 <a href="personnel_table.php">Personnel</a>
+                <a href="metier_table.php">Métier</a>
+                <a href="service_table.php">Service</a>                
             <?php } ?>            
         </nav>
-        <a href="logout.php" class="logout"><img src="Image/logout"></a>
+        <a href="logout.php" class="logout"><img src="Image/logout.png"></a>
     </div>
 
     <head>
@@ -66,7 +67,6 @@
                 text-decoration: none;
                 padding: 12px 15px;
                 display: block;
-                border-radius: 8px;
                 font-size: 1.4vw;
                 font-family: "Roboto", sans-serif;
                 font-weight: bold;

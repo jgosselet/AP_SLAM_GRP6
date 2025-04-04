@@ -55,14 +55,9 @@ if (!$service) {
 $pdf = new PDF();
 $pdf->AddPage();
 
-
-
-
 $pdf->Ln(25);
 $pdf->SetFont('Arial', '', 12); // Définissez la police et la taille si nécessaire
 $pdf->MultiCell(0, 10, mb_convert_encoding("M/Mme $nom $prenom, la clinique LPFS a le plaisir de vous confirmer votre rendez-vous. Veuillez trouver ci-dessous les informations relatives à votre rendez-vous, ainsi que votre numéro de sécurité sociale.", 'ISO-8859-1', 'UTF-8'), 0, 'C');
-
-
 
 $pdf->Ln(15);
 $pdf->SetFont('Arial', 'B', 14);

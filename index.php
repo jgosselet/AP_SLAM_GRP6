@@ -1,3 +1,7 @@
+<?php
+session_start();
+require 'config.php';
+?>
 <html>
 <head>
     <meta charset="UTF-8" />
@@ -16,7 +20,7 @@
         <h2>Connexion</h2>
         <form action="" method="post"> 
         <div class="input-group">
-            <input type="text" name="email" class="input" required>
+            <input type="email" name="email" class="input" value="<?= isset($_SESSION['email_input']) ? $_SESSION['email_input'] : '' ?>" required>
             <label class="user-label">Email</label>
         </div>
             <div class="password-container">
@@ -36,9 +40,6 @@
             <a href="inscription.php">Créez un compte</a>
         </div>-->
         <?php
-            session_start();
-            require 'config.php';
-
             if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Vérifier si le reCAPTCHA a été coché
                 if (isset($_POST['g-recaptcha-response']) && !empty($_POST['g-recaptcha-response'])) {
@@ -52,7 +53,7 @@
                     // Vérifier la réponse auprès des serveurs de Google
                     $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretKey&response=$captchaResponse");
                     $responseKeys = json_decode($response, true);
-
+                    
                     // Si le reCAPTCHA est validé
                     if ($responseKeys["success"]) {
                         // Vérifiez que les champs email et password existent
@@ -83,7 +84,7 @@
                                         $_SESSION['id_service'] = $id_service;
                                         // Vérification du métier de l'utilisateur
                                         if ($id_role == 1) {  // 1 correspond à 'administrateur'
-                                            header("Location: accueil_admin.php");
+                                            header("Location: pre_admission.php");
                                             exit();
                                         } if ($id_role == 2) {  // 2 correspond à 'secrétaire'
                                             header("Location: pre_admission.php");
@@ -99,14 +100,16 @@
                                     } else {
                                         // Mot de passe incorrect
                                         $_SESSION['message'] = "<p>Mot de passe incorrect.</p>";
+                                        $_SESSION['email_input'] = trim($_POST['email']); // Stocke l'email en session
                                         header("Location: index.php");
                                         exit();
                                     }
                                 } else {
                                     // Adresse email non trouvée
                                     $_SESSION['message'] = "<p>Aucun compte trouvé avec cette adresse e-mail.</p>";
+                                    $_SESSION['email_input'] = trim($_POST['email']); // Stocke l'email en session
                                     header("Location: index.php");
-                                    exit();
+                                    exit();                                    
                                 }
 
                                 if ($stmt) {
@@ -114,6 +117,7 @@
                                 }
                             } else {
                                 $_SESSION['message'] = "<p>Erreur lors de la préparation de la requête SQL.</p>";
+                                $_SESSION['email_input'] = trim($_POST['email']); // Stocke l'email en session
                                 header("Location: index.php");
                                 exit();
                             }
@@ -125,12 +129,14 @@
                     } else {
                         // Si le reCAPTCHA a échoué
                         $_SESSION['message'] = "<p>Veuillez valider le CAPTCHA pour continuer.</p>";
+                        $_SESSION['email_input'] = trim($_POST['email']); // Stocke l'email en session
                         header("Location: index.php");
                         exit();
                     }
                 } else {
                     // Si le reCAPTCHA n'est pas coché
                     $_SESSION['message'] = "<p>Veuillez cocher le CAPTCHA.</p>";
+                    $_SESSION['email_input'] = trim($_POST['email']); // Stocke l'email en session
                     header("Location: index.php");
                     exit();
                 }

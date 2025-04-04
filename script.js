@@ -92,6 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             if (step === "2") {
                                 // Remplir les champs du formulaire patient
                                 document.getElementById("nom").value = patient.nom || '';
+                                document.getElementById("nom_epouse").value = patient.nom_epouse || '';
                                 document.getElementById("prenom").value = patient.prenom || '';
                                 document.getElementById("civilite").value = patient.civilite || '';
                                 document.getElementById("date_naissance").value = patient.date_naissance || '';

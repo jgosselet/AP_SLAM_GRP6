@@ -8,12 +8,13 @@ if (!isset($_SESSION['email']) || ($_SESSION['id_role'] != 1)) {
 }
 
 // Créer, Modifier, ou Supprimer des services
-if (isset($_POST['add_service'])) {
-    $service = trim($_POST['service_name']); // Supprime les espaces inutiles   
-    
+if (isset($_POST['add_metier'])) {
+    $id_service = $_POST['id_service'] ;
+    $metier = trim($_POST['metier_name']); // Supprime les espaces inutiles  
+        
     // Vérifier si le service existe déjà
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM service WHERE libelle = ?");
-    $stmt->bind_param("s", $service);
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM metier WHERE libelle = ?");
+    $stmt->bind_param("s", $metier);
     $stmt->execute();
     $stmt->bind_result($count);
     $stmt->fetch();
@@ -21,13 +22,13 @@ if (isset($_POST['add_service'])) {
 
     if ($count > 0) {
         // Si le service existe déjà, afficher un message d'erreur
-        $_SESSION['message'] = "<p>Ce service existe déjà.</p>";
+        $_SESSION['message'] = "<p>Ce métier existe déjà.</p>";
     } else {
         // Ajouter le service s'il n'existe pas encore
-        $stmt = $conn->prepare("INSERT INTO service (libelle) VALUES (?)");
-        $stmt->bind_param("s", $service);
+        $stmt = $conn->prepare("INSERT INTO metier (libelle, id_service) VALUES (?, ?)");
+        $stmt->bind_param("si", $metier, $id_service);
         if ($stmt->execute()) {
-            header("Location: service_table.php");
+            header("Location: metier_table.php");
             exit();
         } else {
             $_SESSION['message'] = "<p>Erreur lors de l'ajout du service.</p>";
@@ -37,40 +38,51 @@ if (isset($_POST['add_service'])) {
 }
 
 
-if (isset($_POST['edit_service'])) {
+if (isset($_POST['edit_metier'])) {
+    $id_metier = $_POST['id_metier'];
     $id_service = $_POST['id_service'];
-    $service = $_POST['service_name'];
-    $sql = "UPDATE service SET libelle=? WHERE id_service=?";
+    $metier = $_POST['metier_name'];
+    $sql = "UPDATE metier SET libelle=?, id_service=? WHERE id_metier=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("si", $service, $id_service);
+    $stmt->bind_param("sii", $metier, $id_service, $id_metier);
     $stmt->execute();
     $stmt->close(); 
-    header("Location: service_table.php");
+    header("Location: metier_table.php");
     exit();   
 }
 
-if (isset($_POST['delete_service'])) {
-    $id_service = $_POST['id_service'];
+if (isset($_POST['delete_metier'])) {
+    $id_metier = $_POST['id_metier'];
     // Vérifier si des personnels sont associés à ce service
-    $stmt = $conn->prepare("SELECT COUNT(*) FROM personnel p JOIN metier m ON p.id_metier = m.id_metier  WHERE m.id_service = ?");
-    $stmt->bind_param("i", $id_service);
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM personnel p  WHERE p.id_metier = ?");
+    $stmt->bind_param("i", $id_metier);
     $stmt->execute();
     $stmt->bind_result($count);
     $stmt->fetch();
     $stmt->close();
     
     if ($count > 0) {
-        $_SESSION['message'] = "<p>Impossible de supprimer ce service car des personnels y sont rattachés.</p>";
+        $_SESSION['message'] = "<p>Impossible de supprimer ce métier car des personnels y sont rattachés.</p>";
         
     } else {
-        $sql = "DELETE FROM service WHERE id_service=?";
+        $sql = "DELETE FROM metier WHERE id_metier=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $id_service);
+        $stmt->bind_param("i", $id_metier);
         if ($stmt->execute()) {
-            header("Location: service_table.php");
+            header("Location: metier_table.php");
             exit();
         }
         $stmt->close();
+    }
+}
+
+$sql_service = "SELECT id_service, libelle FROM service";
+$result_service = $conn->query($sql_service);
+
+$services= [];
+if ($result_service) {
+    while ($row_service = $result_service->fetch_assoc()) {
+        $services[] = $row_service;
     }
 }
 ?>
@@ -79,7 +91,7 @@ if (isset($_POST['delete_service'])) {
 <html lang="fr">
 <head>
     <meta charset="UTF-8" />
-    <title>Gestion des services</title>
+    <title>Gestion des métiers</title>
     <link rel="stylesheet" href="styletable.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,13 +103,28 @@ if (isset($_POST['delete_service'])) {
 <body>
     <?php include 'sidebar.php'; ?>
     <div class="content">
-    <h1>Gestion des services</h1>
+    <h1>Gestion des métiers</h1>
 
     <!-- Formulaire d'ajout -->
     <form method="POST" action="" class="form-add">
-        <label for="service_name">Nom du service :</label>
-        <input type="text" name="service_name" id="service_name" required>
-        <button type="submit" name="add_service">Ajouter service</button> 
+        <div class="ligne">
+            <div class="gauche">
+                <label for="metier_name">Nom du métier :</label>
+                <input type="text" name="metier_name" id="metier_name" required>   
+            </div>
+            <div class="droite">
+                <label for="id_service">Service :</label>
+                <select name="id_service" id="id_service" style="width: 100%;" required>
+                    <option value="" disabled selected>Choix</option>
+                    <?php
+                    foreach ($services as $service) {
+                        echo "<option value='" . $service['id_service'] . "'>" . $service['libelle'] . "</option>";
+                    }
+                    ?>
+                </select>
+            </div>           
+        </div>       
+        <button type="submit" name="add_metier">Ajouter métier</button> 
         <?php 
         if (isset($_SESSION['message'])) {
             echo $_SESSION['message'];
@@ -111,6 +138,7 @@ if (isset($_POST['delete_service'])) {
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Métier</th>
                     <th>Service</th>
                     <th>Modifier</th>
                     <th>Supprimer</th>
@@ -119,26 +147,35 @@ if (isset($_POST['delete_service'])) {
             <tbody>
                 <?php
                 // Récupérer les services depuis la base de données
-                $sql = "SELECT * FROM service";
+                $sql = "SELECT * FROM metier";
                 $result = $conn->query($sql);
 
                 while($row = $result->fetch_assoc()) {
                     echo "<tr>";
-                    echo "<td>" . $row['id_service'] . "</td>";
+                    echo "<td>" . $row['id_metier'] . "</td>";
                     echo "<td>
                             <form method='POST'>
-                                <input type='hidden' name='id_service' value='" . $row['id_service'] . "'>
-                                <input type='text' name='service_name' value='" . $row['libelle'] . "' required>                            
+                                <input type='hidden' name='id_metier' value='" . $row['id_metier'] . "'>
+                                <input type='text' name='metier_name' value='" . $row['libelle'] . "' required>                            
                           </td>";
+                    echo "<td>";
+                    echo "<select name='id_service' required>";
+                    foreach ($services as $service) {
+                        $selected = ($service['id_service'] == $row['id_service']) ? "selected" : "";
+                        echo "<option value='" . $service['id_service'] . "' $selected>" . htmlspecialchars($service['libelle']) . "</option>";
+                    }
+                    echo "</select>";
+                    echo "</td>";
+                         
                     // Colonne "Modifier" avec l'icône dans un formulaire
                     echo "<td class='action-icons'>            
-                                <button class='icon-button' type='submit' name='edit_service'>
+                                <button class='icon-button' type='submit' name='edit_metier'>
                                     <img class='icon' src='Image/modifier.png' alt='Modifier'>
                                 </button>
                           </td>";
                     // Colonne "Supprimer"
                     echo "<td class='action-icons'>                  
-                                <button class='icon-button' type='submit' name='delete_service'>
+                                <button class='icon-button' type='submit' name='delete_metier'>
                                     <img class='icon' src='Image/supprimer.png' alt='Supprimer'>
                                 </button>
                             </form>
